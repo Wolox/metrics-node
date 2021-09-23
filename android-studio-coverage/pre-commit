@@ -1,0 +1,29 @@
+#!/usr/bin/python3
+
+import os, subprocess, sys
+
+IGNORE_CONFLICT_FILE = "./ignore-conflict/.gitattributes"
+CODE_COVERAGE_FILE = "./code_coverage.json"
+PRE_COMMIT_DIR = '' # If the Android Studio Project Folder is not in repo root, set it here. 
+
+if not os.path.exists(IGNORE_CONFLICT_FILE):
+    with open(IGNORE_CONFLICT_FILE, 'w') as f:
+        f.write(f"{CODE_COVERAGE_FILE} merge=ours")
+        f.close()
+    os.system(f"git add {PRE_COMMIT_DIR}/ignore-conflict")
+    os.system("git config merge.ours.driver true")
+
+
+DEFAULT_COVERAGE_FOLDER = "app/build/reports/coverage/debug/index.html"
+
+os.chdir(f"{os.getcwd()}/{PRE_COMMIT_DIR}")
+
+result = os.system('./gradlew jacocoCoverageReport')
+
+if result == 0:
+    os.system(f"./jacocoparser '{DEFAULT_COVERAGE_FOLDER}'")
+    os.system(f"open {DEFAULT_COVERAGE_FOLDER}") 
+    exit(0)
+else:
+    exit(1)
+
